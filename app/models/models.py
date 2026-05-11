@@ -1,7 +1,5 @@
-from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-
-db = SQLAlchemy()
+from app.extensions import db
 
 # For representing universities and bootcamps
 class Institution(db.Model):
