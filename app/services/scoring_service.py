@@ -1,4 +1,4 @@
-from extensions import db
+from app.extensions import db
 
 def calculate_and_award_points(user, challenge, submission_status):
     """

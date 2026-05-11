@@ -1,4 +1,4 @@
-from extensions import db
+from app.extensions import db
 from datetime import datetime
 from sqlalchemy.orm import validates
 
@@ -17,6 +17,7 @@ class Challenge(db.Model):
     time_limit = db.Column(db.Float, default=2.0) # Seconds
     memory_limit = db.Column(db.Integer, default=128) # MB
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
     # Relationships
     test_cases = db.relationship('TestCase', backref='challenge', lazy=True, cascade="all, delete-orphan")
     submissions = db.relationship('Submission', backref='challenge', lazy=True)
