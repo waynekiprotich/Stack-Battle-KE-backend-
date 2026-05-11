@@ -1,4 +1,4 @@
-from extensions import db
+from app.extensions import db
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import validates
@@ -17,6 +17,7 @@ class User(db.Model):
     institution_id = db.Column(db.Integer, db.ForeignKey('institutions.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
     # Relationships
     submissions = db.relationship('Submission', backref='user', lazy=True, cascade="all, delete-orphan")
     notifications = db.relationship('Notification', backref='user', lazy=True, cascade="all, delete-orphan")
@@ -51,6 +52,7 @@ class FriendRequest(db.Model):
     receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     status = db.Column(db.String(20), default='Pending') # Pending, Accepted, Rejected
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    #Relations
+
+    # Backrefs to easily see who sent and who received
     sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_requests')
     receiver = db.relationship('User', foreign_keys=[receiver_id], backref='received_requests')
