@@ -1,3 +1,4 @@
+ feature/groups
 # Virtual environment
 venv/
 
@@ -14,3 +15,20 @@ instance/
 # OS/editor files
 .vscode/
 .DS_Store
+
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.venv/
+instance/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.DS_Store
+ main
