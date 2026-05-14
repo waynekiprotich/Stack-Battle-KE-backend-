@@ -7,7 +7,7 @@ def notify(user_id: int, ntype: str, message: str) -> Notification:
     Create a notification for a user.
     Args:
         user_id: The recipient user's ID
-        ntype:   Notification type e.g. "friend_request", "submission_result", "rank_up"
+        ntype:   Notification type (friend_request", "submission_result", "rank_up")
         message: Human-readable notification text
     """
     notif = Notification(
