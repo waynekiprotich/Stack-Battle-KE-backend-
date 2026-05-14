@@ -5,6 +5,7 @@ from app.models.group import Group, GroupMember
 from app.models.friend import FriendRequest
 from app.models.notification import Notification
 
+
 __all__ = [
     "User",
     "Institution",

@@ -1,36 +1,38 @@
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+
 from app.config import Config
 from app.extensions import db, migrate
 
-# Initialize JWT outside the factory so it can be imported elsewhere
+
 jwt = JWTManager()
 
+
 def create_app(config_class=Config):
-    """
-    Application Factory: Creates and configures the Flask app.
-    """
+
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Initialize Extensions with the app instance
+    # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    
-    # Enable CORS (Cross-Origin Resource Sharing)
-    # This allows your React frontend to talk to this API
+
+    # Enable CORS
     CORS(app)
 
-    # Register Blueprints
+    # Register routes
     from app.routes.submissions import submission_bp
-    
-    app.register_blueprint(submission_bp)
+    from app.routes.auth import auth_bp
 
-    # Simple health check route
-    @app.route('/health')
+    app.register_blueprint(submission_bp)
+    app.register_blueprint(auth_bp)
+
+    @app.route("/health")
     def health():
-        return {"status": "Stack-Battle KE API is running"}, 200
+        return {
+            "status": "Stack-Battle KE API is running"
+        }, 200
 
     return app
