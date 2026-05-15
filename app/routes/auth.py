@@ -2,109 +2,89 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token
 
 from app.extensions import db
-from app.models.user import User
+from app.models import User
 
 
-auth_bp = Blueprint(
-    "auth",
-    __name__,
-    url_prefix="/api/auth"
-)
+auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
 @auth_bp.route("/register", methods=["POST"])
 def register():
-    """
-    Register a new user
-    """
     data = request.get_json()
 
     if not data:
-        return jsonify({
-            "error": "No data provided"
-        }), 400
+        return jsonify({"message": "Request data is required"}), 400
 
     name = data.get("name")
     email = data.get("email")
     password = data.get("password")
     institution_id = data.get("institution_id")
 
-    if not name or not email or not password:
+    if not all([name, email, password]):
         return jsonify({
-            "error": "Name, email, and password are required"
+            "message": "Name, email and password are required"
         }), 400
 
-    existing_user = User.query.filter_by(
-        email=email
-    ).first()
+    user_exists = User.query.filter_by(email=email).first()
 
-    if existing_user:
+    if user_exists:
         return jsonify({
-            "error": "Email already exists"
+            "message": "Email is already in use"
         }), 400
 
-    user = User(
+    new_user = User(
         name=name,
         email=email,
         institution_id=institution_id
     )
 
-    user.set_password(password)
+    new_user.set_password(password)
 
-    db.session.add(user)
+    db.session.add(new_user)
     db.session.commit()
 
     return jsonify({
-        "message": "Registration successful",
+        "message": "Account created successfully",
         "user": {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email
+            "id": new_user.id,
+            "name": new_user.name,
+            "email": new_user.email
         }
     }), 201
 
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
-    """
-    Login user
-    """
     data = request.get_json()
 
     if not data:
-        return jsonify({
-            "error": "No data provided"
-        }), 400
+        return jsonify({"message": "Request data is required"}), 400
 
     email = data.get("email")
     password = data.get("password")
 
     if not email or not password:
         return jsonify({
-            "error": "Email and password are required"
+            "message": "Email and password are required"
         }), 400
 
-    user = User.query.filter_by(
-        email=email
-    ).first()
+    user = User.query.filter_by(email=email).first()
 
     if not user:
         return jsonify({
-            "error": "User not found"
+            "message": "Account not found"
         }), 404
 
     if not user.check_password(password):
         return jsonify({
-            "error": "Invalid credentials"
+            "message": "Incorrect password"
         }), 401
 
-    access_token = create_access_token(
-        identity=str(user.id)
-    )
+    token = create_access_token(identity=str(user.id))
 
     return jsonify({
         "message": "Login successful",
-        "token": access_token,
+        "token": token,
         "user": {
             "id": user.id,
             "name": user.name,
