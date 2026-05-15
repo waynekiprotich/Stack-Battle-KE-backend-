@@ -1,61 +1,109 @@
 from flask import Blueprint, request, jsonify
-from app.extensions import db
-from app.models import Submission, Challenge, TestCase, User
-from app.services.piston_service import execute_code_against_tests
-from app.services.scoring_service import calculate_and_award_points
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from app.extensions import db
+from app.models.challenge import Challenge
+from app.models.user import User
+from app.models.submission import Submission
+from app.schemas import submission_schema, submissions_schema
+from app.services.scoring_service import evaluate_submission, update_user_points
+from app.services.notification_service import notify
+from app.utils.pagination import paginate
+from app.utils.rate_limiter import rate_limit
 
-submission_bp = Blueprint('submissions', __name__, url_prefix='/api/submissions')
+submissions_bp = Blueprint("submissions", __name__)
 
-@submission_bp.route('/submit', methods=['POST'])
+
+@submissions_bp.post("/submit-code")
 @jwt_required()
 def submit_code():
-    data = request.get_json()
-    
-    challenge_id = data.get('challenge_id')
-    language = data.get('language')
-    code = data.get('code')
-    current_user_id = get_jwt_identity()
+    """
+    Submit code for a challenge.
+    1. Validate request
+    2. Create a Submission row (status=Running)
+    3. Run against all test cases via Piston
+    4. Score and update submission
+    5. Award points to user
+    6. Send notification
+    7. Return result
+    """
+    user_id = get_jwt_identity()
+
+    # Rate limiter
+    if rate_limit(f"submit:{user_id}", max_calls=10, window_seconds=60):
+        return jsonify({"error": "Too many submissions. Please wait a moment."}), 429
+
+    data = request.get_json(silent=True) or {}
+    challenge_id = data.get("challenge_id")
+    language = data.get("language", "").lower()
+    code = data.get("code", "").strip()
+
+    # Basic  validation
+    if not challenge_id:
+        return jsonify({"error": "challenge_id is required."}), 400
+    if language not in ["python", "javascript"]:
+        return jsonify({"error": "language must be 'python' or 'javascript'."}), 400
+    if not code:
+        return jsonify({"error": "code cannot be empty."}), 400
 
     challenge = Challenge.query.get_or_404(challenge_id)
-    user = User.query.get_or_404(current_user_id)
-    test_cases = TestCase.query.filter_by(challenge_id=challenge_id).all()
+    test_cases = challenge.test_cases.all()
 
     if not test_cases:
-        return jsonify({"error": "No test cases found for this challenge."}), 400
+        return jsonify({"error": "This challenge has no test cases yet."}), 400
 
-    submission = Submission(
-        user_id=user.id,
-        challenge_id=challenge.id,
+    # Create submission record before running (so the user can see it pending)
+    sub = Submission(
+        user_id=user_id,
+        challenge_id=challenge_id,
         language=language,
         code=code,
-        status='Pending'
+        status="Running",
+        total_tests=len(test_cases),
     )
-    db.session.add(submission)
+    db.session.add(sub)
     db.session.commit()
 
-    evaluation_result = execute_code_against_tests(code, language, test_cases)
-
-    submission.status = evaluation_result.get('status')
-    submission.passed_tests = evaluation_result.get('passed_tests')
-    submission.total_tests = evaluation_result.get('total_tests')
-    submission.stdout = evaluation_result.get('stdout')
-    submission.stderr = evaluation_result.get('stderr')
-
-    points_earned = calculate_and_award_points(user, challenge, submission.status)
-    submission.score = points_earned
-
+    # Run evaluation (calls Piston for each test case)
+    result = evaluate_submission(sub, challenge, test_cases)
     db.session.commit()
 
-    return jsonify({
-        "message": "Execution complete.",
-        "submission_id": submission.id,
-        "status": submission.status,
-        "passed_tests": submission.passed_tests,
-        "total_tests": submission.total_tests,
-        "points_earned": points_earned,
-        "new_total_points": user.points,
-        "current_rank": user.rank_tier,
-        "stdout": submission.stdout,
-        "stderr": submission.stderr
-    }), 200
+    # Award points
+    user = User.query.get(user_id)
+    update_user_points(user, result["score"])
+
+    # Notify user
+    notify(
+        user_id=user_id,
+        ntype="submission_result",
+        message=(
+            f"Your submission for '{challenge.title}': {result['status']} "
+            f"({result['passed_tests']}/{result['total_tests']} tests passed, "
+            f"{result['score']} pts earned)"
+        ),
+    )
+
+    return submission_schema.jsonify(sub), 201
+
+
+@submissions_bp.get("/results")
+@jwt_required()
+def get_results():
+    """Return the logged-in user's submission history (paginated)."""
+    user_id = get_jwt_identity()
+    query = (
+        Submission.query
+        .filter_by(user_id=user_id)
+        .order_by(Submission.created_at.desc())
+    )
+    return jsonify(paginate(query, submissions_schema)), 200
+
+
+@submissions_bp.get("/results/<int:submission_id>")
+@jwt_required()
+def get_result(submission_id):
+    """Return a single submission. Users can only view their own."""
+    user_id = get_jwt_identity()
+    sub = Submission.query.get_or_404(submission_id)
+    if sub.user_id != user_id:
+        return jsonify({"error": "Forbidden — this is not your submission."}), 403
+    return submission_schema.jsonify(sub), 200
