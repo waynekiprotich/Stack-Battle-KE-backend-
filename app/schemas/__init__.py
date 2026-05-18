@@ -1,3 +1,8 @@
+#Fuctional use of schema
+#Convert database objects
+#Validate incoming user data (
+#Control what fields are exposed or hidden
+
 from marshmallow import fields, validate, validates, ValidationError
 from app.extensions import ma
 from app.models.user import User, Institution
@@ -27,7 +32,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     # Input validation
     email = fields.Email(required=True, error_messages={"required": "Email is required."})
     password = fields.Str(
-        load_only=True,   # never serialised in output
+        load_only=True,  
         required=True,
         validate=validate.Length(min=8, error="Password must be at least 8 characters."),
     )
@@ -36,7 +41,6 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         validate=validate.Length(min=2, max=80, error="Name must be 2–80 characters."),
     )
 
-    # Nested: pull institution name into user response
     institution = ma.Nested(InstitutionSchema, only=("id", "name", "type"), dump_only=True)
 
 
@@ -49,7 +53,6 @@ class TestCaseSchema(ma.SQLAlchemyAutoSchema):
 
 
 class TestCaseAdminSchema(ma.SQLAlchemyAutoSchema):
-    """Full schema for seeding / admin use — includes expected_output."""
     class Meta:
         model = TestCase
         load_instance = True
@@ -67,7 +70,7 @@ class ChallengeSchema(ma.SQLAlchemyAutoSchema):
             error="Difficulty must be Easy, Medium, or Hard.",
         )
     )
-    # Return visible test cases only (is_hidden=False)
+    # Return visible test cases only 
     test_cases = ma.Nested(TestCaseSchema, many=True, dump_only=True)
 
 
@@ -95,7 +98,7 @@ class SubmissionSchema(ma.SQLAlchemyAutoSchema):
     )
     code = fields.Str(required=True, validate=validate.Length(min=1, error="Code cannot be empty."))
 
-    # Nested references (dump only — set by the server)
+    # Nested references 
     user = ma.Nested(UserSchema, only=("id", "name", "rank_tier"), dump_only=True)
     challenge = ma.Nested(ChallengeSchema, only=("id", "title", "difficulty"), dump_only=True)
 
@@ -140,7 +143,7 @@ class NotificationSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-#Single instances used across routes
+#Single instances in routes
 
 institution_schema = InstitutionSchema()
 institutions_schema = InstitutionSchema(many=True)
@@ -162,5 +165,5 @@ groups_schema = GroupSchema(many=True)
 friend_schema = FriendRequestSchema()
 friends_schema = FriendRequestSchema(many=True)
 
-notification_schema = NotificationSchema()
+notification_schema = NotificationSchema()  
 notifications_schema = NotificationSchema(many=True)
