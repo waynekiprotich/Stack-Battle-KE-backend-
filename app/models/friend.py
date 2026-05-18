@@ -1,7 +1,7 @@
 from datetime import datetime
 from app.extensions import db
 
-# manage friendships between users in your platform
+# manag friendships between users in the app
 class FriendRequest(db.Model):
     __tablename__ = "friend_requests"
 

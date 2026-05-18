@@ -7,7 +7,7 @@ class Challenge(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
-    slug = db.Column(db.String(220), unique=True, nullable=False) # In us eto identify a specific page of that problem cahllenge
+    slug = db.Column(db.String(220), unique=True, nullable=False) # In use to identify a specific page of that problem cahllenge
     description = db.Column(db.Text, nullable=False)
     difficulty = db.Column(
         db.Enum("Easy", "Medium", "Hard", name="difficulty_level"),
@@ -22,6 +22,7 @@ class Challenge(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships 
+    # one to many
     test_cases = db.relationship(
         "TestCase",
         back_populates="challenge",
@@ -40,7 +41,8 @@ class Challenge(db.Model):
     def __repr__(self):
         return f"<Challenge {self.slug}>"
 
-# For marking the cahllenges and test them
+# For marking the cahllenges and test them if they are coorrect
+
 class TestCase(db.Model):
     __tablename__ = "test_cases"
 
@@ -52,7 +54,6 @@ class TestCase(db.Model):
     expected_output = db.Column(db.Text, nullable=False)
     is_hidden = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
     challenge = db.relationship("Challenge", back_populates="test_cases")
 
     def __repr__(self):

@@ -2,6 +2,7 @@ from datetime import datetime
 from app.extensions import db
 
 #Tracks every attempt a user makes to solve a coding challenge and capturing the code they wrote
+#configuration
 
 SUBMISSION_STATUSES = [
     "Pending",
@@ -38,6 +39,7 @@ class Submission(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
+    # Many-to-one relationships
     user = db.relationship("User", back_populates="submissions")
     challenge = db.relationship("Challenge", back_populates="submissions")
 

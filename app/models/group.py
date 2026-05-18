@@ -1,7 +1,7 @@
 from datetime import datetime
 from app.extensions import db
 
-# This represents the group itself 
+# This represents the group 
 class Group(db.Model):
     __tablename__ = "groups"
 
@@ -13,7 +13,9 @@ class Group(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
+    # many-to-one relationship
     admin = db.relationship("User", foreign_keys=[admin_id], back_populates="created_groups")
+    # one-to-many relationship
     members = db.relationship(
         "GroupMember",
         back_populates="group",
@@ -23,7 +25,7 @@ class Group(db.Model):
     def __repr__(self):
         return f"<Group {self.name}>"
 
-# This is the connector ,connecting a User to a Group
+# This is the connector User to a Group
 class GroupMember(db.Model):
     __tablename__ = "group_members"
 
