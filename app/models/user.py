@@ -2,7 +2,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db
 
-
+# This model represents the educational organizations that users be in.
 class Institution(db.Model):
     __tablename__ = "institutions"
 
@@ -11,14 +11,14 @@ class Institution(db.Model):
     type = db.Column(db.Enum("University", "Bootcamp", name="institution_type"), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    #Relationship
-    # One institution -> many users
+    # Relationship
+    # one-to-many relationship with the User model
     users = db.relationship("User", back_populates="institution", lazy="dynamic")
 
     def __repr__(self):
         return f"<Institution {self.name}>"
 
-
+# Model for the main users 
 class User(db.Model):
     __tablename__ = "users"
 
@@ -35,16 +35,22 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
+    # many-to-one relationship
     institution = db.relationship("Institution", back_populates="users")
+    # one-to-many relationship
     submissions = db.relationship("Submission", back_populates="user", cascade="all, delete-orphan")
+    # one-to-many relationship
     groups = db.relationship("GroupMember", back_populates="user", cascade="all, delete-orphan")
+    #one-to-many relationship
     notifications = db.relationship("Notification", back_populates="user", cascade="all, delete-orphan")
+    # one-to-many relationship
     sent_requests = db.relationship(
         "FriendRequest",
         foreign_keys="FriendRequest.sender_id",
         back_populates="sender",
         cascade="all, delete-orphan",
     )
+    # one-to-many relationship
     recv_requests = db.relationship(
         "FriendRequest",
         foreign_keys="FriendRequest.receiver_id",
@@ -60,9 +66,10 @@ class User(db.Model):
     )
 
     #Password helpers
+    #setting password
     def set_password(self, raw_password):
         self.password_hash = generate_password_hash(raw_password)
-
+    #Checking password
     def check_password(self, raw_password):
         return check_password_hash(self.password_hash, raw_password)
 
