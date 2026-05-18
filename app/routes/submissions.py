@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.extensions import db
 from app.models.challenge import Challenge
-from app.models.user import User
+from app.models.users import User
 from app.models.submission import Submission
 from app.schemas import submission_schema, submissions_schema
 from app.services.scoring_service import evaluate_submission, update_user_points
@@ -10,7 +10,11 @@ from app.services.notification_service import notify
 from app.utils.pagination import paginate
 from app.utils.rate_limiter import rate_limit
 
-submissions_bp = Blueprint("submissions", __name__)
+submissions_bp = Blueprint(
+    "submissions",
+    __name__,
+    url_prefix="/submissions"
+)
 
 
 @submissions_bp.post("/submit-code")

@@ -1,5 +1,5 @@
 from app.routes.auth import auth_bp
-from app.routes.users import users_bp
+from app.routes.user import users_bp
 from app.routes.institutions import institutions_bp
 from app.routes.challenges import challenges_bp
 from app.routes.submissions import submissions_bp

@@ -1,7 +1,7 @@
 from sqlalchemy import func
 
 from app.extensions import db
-from app.models.user import User
+from app.models.users import User
 from app.models.group import Group, GroupMember
 from app.models.submission import Submission
 from app.models.challenge import WeeklyChallenge

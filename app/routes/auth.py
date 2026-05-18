@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import ValidationError
 from app.services.auth_service import check_email_exists, register_user, login_user
-from app.models.user import User
+from app.models.users import User
 from app.schemas import user_schema
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")

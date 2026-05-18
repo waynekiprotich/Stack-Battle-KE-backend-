@@ -7,7 +7,7 @@ def jwt_required_user(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         verify_jwt_in_request()
-        from app.models.user import User
+        from app.models.users import User
         user_id = get_jwt_identity()
         current_user = User.query.get(user_id)
         if not current_user:

@@ -5,7 +5,7 @@
 
 from marshmallow import fields, validate, validates, ValidationError
 from app.extensions import ma
-from app.models.user import User, Institution
+from app.models.users import User, Institution
 from app.models.challenge import Challenge, TestCase, WeeklyChallenge
 from app.models.submission import Submission
 from app.models.group import Group, GroupMember

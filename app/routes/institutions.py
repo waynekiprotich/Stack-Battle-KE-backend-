@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from app.models.user import Institution
+from app.models.users import Institution
 from app.schemas import institutions_schema
 
 institutions_bp = Blueprint("institutions", __name__, url_prefix="/institutions")

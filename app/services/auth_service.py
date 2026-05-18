@@ -2,11 +2,11 @@ from flask_jwt_extended import create_access_token
 from marshmallow import ValidationError
 
 from app.extensions import db
-from app.models.user import User
+from app.models.users import User
 from app.schemas import user_schema
 
 
-def email_already_registered(email):
+def check_email_exists(email):
     """
     Check whether this email is already in use.
     Emails are normalized first to avoid duplicates
