@@ -1,38 +1,35 @@
 from flask import Flask
-from flask_jwt_extended import JWTManager
-from flask_cors import CORS
-
-from app.config import Config
-from app.extensions import db, migrate
+from app.extensions import db, migrate, jwt, ma
+from app.config import get_config
 
 
-jwt = JWTManager()
-
-
-def create_app(config_class=Config):
-
+def create_app(env="development"):
     app = Flask(__name__)
-    app.config.from_object(config_class)
+    app.config.from_object(get_config(env))
 
-    # Initialize extensions
+    # Initialise extensions — order matters
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
+    ma.init_app(app)
 
-    # Enable CORS
-    CORS(app)
+    # Import all models so Flask-Migrate can detect them
+    with app.app_context():
+        from app.models import (  # noqa: F401
+            User, Institution, Challenge, TestCase,
+            WeeklyChallenge, Submission, Group,
+            GroupMember, FriendRequest, Notification,
+        )
 
-    # Register routes
-    from app.routes.submissions import submission_bp
-    from app.routes.auth import auth_bp
+    # Register blueprints
+    from app.routes import register_blueprints
+    register_blueprints(app)
 
-    app.register_blueprint(submission_bp)
-    app.register_blueprint(auth_bp)
+    # Register error handlers
+   
 
-    @app.route("/health")
-    def health():
-        return {
-            "status": "Stack-Battle KE API is running"
-        }, 200
+    # Register middleware
+    from app.middleware import register_middleware
+    register_middleware(app)
 
     return app
