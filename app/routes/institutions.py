@@ -2,8 +2,8 @@ from flask import Blueprint, jsonify
 from app.models.users import Institution
 from app.schemas import institutions_schema
 
-institutions_bp = Blueprint("institutions", __name__, url_prefix="/institutions")
-
+# FIX: Removed url_prefix
+institutions_bp = Blueprint("institutions", __name__)
 
 @institutions_bp.get("/")
 def get_institutions():

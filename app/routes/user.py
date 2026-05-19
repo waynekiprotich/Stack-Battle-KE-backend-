@@ -4,14 +4,15 @@ from app.extensions import db
 from app.models.users import User
 from app.schemas import user_schema
 
-users_bp = Blueprint("users", __name__, url_prefix="/users")
+# FIX: Removed url_prefix
+users_bp = Blueprint("users", __name__)
 
 
 @users_bp.get("/profile")
 @jwt_required()
 def get_profile():
-    """Return the logged-in user's full profile."""
-    user_id = get_jwt_identity()
+    # FIX: Cast to int
+    user_id = int(get_jwt_identity())
     user = User.query.get_or_404(user_id)
     return user_schema.jsonify(user), 200
 
@@ -19,12 +20,11 @@ def get_profile():
 @users_bp.put("/profile")
 @jwt_required()
 def update_profile():
-    """Update the logged-in user's editable fields."""
-    user_id = get_jwt_identity()
+    # FIX: Cast to int
+    user_id = int(get_jwt_identity())
     user = User.query.get_or_404(user_id)
     data = request.get_json(silent=True) or {}
 
-    # Only allow updating safe fields
     if "name" in data:
         name = data["name"].strip()
         if len(name) < 2 or len(name) > 80:
@@ -47,9 +47,7 @@ def update_profile():
 @users_bp.get("/<int:user_id>")
 @jwt_required()
 def get_user(user_id):
-    """Return a public profile for any user by ID."""
     user = User.query.get_or_404(user_id)
-    # Return a limited view (exclude private fields like email)
     return jsonify({
         "id": user.id,
         "name": user.name,

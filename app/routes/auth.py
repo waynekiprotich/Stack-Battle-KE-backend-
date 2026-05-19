@@ -11,7 +11,8 @@ from app.services.auth_service import (
 from app.models.users import User
 from app.schemas import user_schema
 
-auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
+# FIX: Removed url_prefix to prevent double prefixing
+auth_bp = Blueprint("auth", __name__)
 
 
 # ------------------------------------------------
@@ -48,7 +49,6 @@ def register():
     try:
         result = register_user(data)
 
-        # 🔥 ENSURE token identity is string-safe (if service returns token here)
         if "token" in result:
             result["token"] = result["token"]
 
@@ -82,7 +82,6 @@ def login():
     try:
         result = login_user(data)
 
-        # 🔥 IMPORTANT: ensure token exists
         if "token" not in result:
             return jsonify({
                 "error": "Login failed - no token generated"
@@ -107,10 +106,10 @@ def login():
 @jwt_required()
 def me():
     try:
-        user_id = get_jwt_identity()
+        # FIX: Ensure it is cast to int
+        user_id = int(get_jwt_identity())
 
-        # 🔥 FIX: JWT identity comes back as STRING → convert safely
-        user = User.query.get(int(user_id))
+        user = User.query.get(user_id)
 
         if not user:
             return jsonify({"error": "User not found"}), 404

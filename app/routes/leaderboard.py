@@ -2,16 +2,15 @@ from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required
 
 from app.schemas import user_schema, users_schema, group_schema
-from app.services.leaderboard_service import get_global_leaderboard
+# FIX: Import get_weekly_leaderboard
+from app.services.leaderboard_service import get_global_leaderboard, get_weekly_leaderboard
 from app.utils.pagination import paginate
 from app.models.group import Group
 
-leaderboard_bp = Blueprint("leaderboard", __name__, url_prefix="/api/leaderboard")
+# FIX: Removed url_prefix
+leaderboard_bp = Blueprint("leaderboard", __name__)
 
 
-# ================================================================
-# GLOBAL LEADERBOARD (SAFE)
-# ================================================================
 @leaderboard_bp.get("/")
 @jwt_required()
 def global_leaderboard():
@@ -24,15 +23,11 @@ def global_leaderboard():
         return jsonify({"data": [], "error": "global leaderboard failed"}), 200
 
 
-# ================================================================
-# GROUP LEADERBOARD (CRASH-PROOF VERSION)
-# ================================================================
 @leaderboard_bp.get("/groups")
 @jwt_required()
 def groups_leaderboard():
     try:
         groups = Group.query.all()
-
         results = []
 
         for group in groups:
@@ -43,7 +38,6 @@ def groups_leaderboard():
 
             for m in members:
                 user = getattr(m, "user", None)
-
                 if user:
                     total_points += getattr(user, "points", 0) or 0
                     member_count += 1
@@ -55,7 +49,6 @@ def groups_leaderboard():
             })
 
         results.sort(key=lambda x: x["total_points"], reverse=True)
-
         return jsonify({"data": results}), 200
 
     except Exception as e:
@@ -63,17 +56,14 @@ def groups_leaderboard():
         return jsonify({"data": [], "error": "failed"}), 200
 
 
-# ================================================================
-# WEEKLY LEADERBOARD (SAFE WRAPPER)
-# ================================================================
 @leaderboard_bp.get("/weekly/<int:week_number>")
 @jwt_required()
 def weekly_leaderboard(week_number):
     try:
-        results, weekly = get_global_leaderboard(week_number)
+        # FIX: Call the correct function
+        results, weekly = get_weekly_leaderboard(week_number)
 
         data = []
-
         for user, best_score in results:
             try:
                 data.append({

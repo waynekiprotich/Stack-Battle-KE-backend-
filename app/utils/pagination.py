@@ -1,9 +1,6 @@
 from flask import request
 
-
 def paginate(query, schema):
-    ge=20
-    
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 20, type=int)
     per_page = min(per_page, 100)   

@@ -7,31 +7,21 @@ from app.schemas import (
     weekly_schema
 )
 
-challenges_bp = Blueprint(
-    "challenges",
-    __name__,
-    url_prefix="/api/challenges"
-)
+# FIX: Removed url_prefix
+challenges_bp = Blueprint("challenges", __name__)
 
-# =====================================================
-# GET ALL CHALLENGES
-# =====================================================
 @challenges_bp.route("/", methods=["GET"])
 def get_challenges():
     try:
         difficulty = request.args.get("difficulty")
-
         query = Challenge.query
 
-        # Optional filtering
         if difficulty:
             allowed = ["Easy", "Medium", "Hard"]
-
             if difficulty not in allowed:
                 return jsonify({
                     "error": "difficulty must be Easy, Medium, or Hard"
                 }), 400
-
             query = query.filter_by(difficulty=difficulty)
 
         challenges = (
@@ -53,9 +43,6 @@ def get_challenges():
         }), 500
 
 
-# =====================================================
-# GET PRACTICE CHALLENGES
-# =====================================================
 @challenges_bp.route("/practice", methods=["GET"])
 def get_practice():
     try:
@@ -79,9 +66,6 @@ def get_practice():
         }), 500
 
 
-# =====================================================
-# GET ACTIVE WEEKLY CHALLENGE
-# =====================================================
 @challenges_bp.route("/weekly", methods=["GET"])
 def get_weekly():
     try:
@@ -109,9 +93,6 @@ def get_weekly():
         }), 500
 
 
-# =====================================================
-# GET SINGLE CHALLENGE
-# =====================================================
 @challenges_bp.route("/<int:challenge_id>", methods=["GET"])
 def get_challenge(challenge_id):
     try:
