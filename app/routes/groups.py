@@ -4,8 +4,7 @@ from app.models.group import Group
 from app.schemas import group_schema, groups_schema
 from app.services.group_service import create_group, join_group, get_user_groups
 
-groups_bp = Blueprint("groups", __name__, url_prefix="/groups")
-
+groups_bp = Blueprint("groups", __name__, url_prefix="/api/groups")
 
 @groups_bp.post("/")
 @jwt_required()

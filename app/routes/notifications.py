@@ -3,7 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.schemas import notifications_schema, notification_schema
 from app.services.notification_service import get_user_notifications, mark_read
 
-notifications_bp = Blueprint("notifications", __name__, url_prefix="/notifications")
+notifications_bp = Blueprint("notifications", __name__, url_prefix="/api/notifications")
 
 
 @notifications_bp.get("/")

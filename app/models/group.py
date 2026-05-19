@@ -1,5 +1,10 @@
+import secrets
 from datetime import datetime
 from app.extensions import db
+
+def generate_invite_code():
+    """Generates an 8-character random hex string (e.g., '1a2b3c4d')"""
+    return secrets.token_hex(4)
 
 # This represents the group 
 class Group(db.Model):
@@ -8,7 +13,15 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
-    invite_code = db.Column(db.String(12), unique=True, nullable=False)
+    
+    # Auto-generates a unique code if one isn't provided
+    invite_code = db.Column(
+        db.String(12), 
+        unique=True, 
+        nullable=False,
+        default=generate_invite_code 
+    )
+    
     admin_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

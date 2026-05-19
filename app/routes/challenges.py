@@ -2,12 +2,13 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from app.models.challenge import Challenge, WeeklyChallenge
 from app.schemas import challenge_schema, challenges_schema, weekly_schema
-from app.utils.pagination import paginate
 
-challenges_bp = Blueprint("challenges", __name__, url_prefix="/challenges")
+challenges_bp = Blueprint("challenges", __name__, url_prefix="/api/challenges")
 
-
-@challenges_bp.get("/")
+# -------------------------
+# GET ALL CHALLENGES
+# -------------------------
+@challenges_bp.route("/", methods=["GET"])
 @jwt_required()
 def get_challenges():
     difficulty = request.args.get("difficulty")
@@ -18,31 +19,45 @@ def get_challenges():
             return jsonify({"error": "difficulty must be Easy, Medium, or Hard"}), 400
         query = query.filter_by(difficulty=difficulty)
 
-    query = query.order_by(Challenge.created_at.desc())
-    return jsonify(paginate(query, challenges_schema)), 200
+    challenges = query.order_by(Challenge.created_at.desc()).all()
+
+    return jsonify(challenges_schema.dump(challenges)), 200
 
 
-@challenges_bp.get("/practice")
+# -------------------------
+# PRACTICE
+# -------------------------
+@challenges_bp.route("/practice", methods=["GET"])
 @jwt_required()
 def get_practice():
-    query = (
+    challenges = (
         Challenge.query
         .filter_by(is_practice=True)
-        .order_by(Challenge.difficulty, Challenge.created_at)
+        .order_by(Challenge.created_at.desc())
+        .all()
     )
-    return jsonify(paginate(query, challenges_schema)), 200
+
+    return jsonify(challenges_schema.dump(challenges)), 200
 
 
-@challenges_bp.get("/weekly")
+# -------------------------
+# WEEKLY
+# -------------------------
+@challenges_bp.route("/weekly", methods=["GET"])
 @jwt_required()
 def get_weekly():
-    weekly = WeeklyChallenge.query.filter_by(is_active=True).first_or_404(
-        description="No active weekly challenge at the moment."
-    )
+    weekly = WeeklyChallenge.query.filter_by(is_active=True).first()
+
+    if not weekly:
+        return jsonify({"error": "No active weekly challenge"}), 404
+
     return weekly_schema.jsonify(weekly), 200
 
 
-@challenges_bp.get("/<int:challenge_id>")
+# -------------------------
+# SINGLE CHALLENGE
+# -------------------------
+@challenges_bp.route("/<int:challenge_id>", methods=["GET"])
 @jwt_required()
 def get_challenge(challenge_id):
     challenge = Challenge.query.get_or_404(challenge_id)

@@ -5,7 +5,7 @@ from app.services.leaderboard_service import get_global_leaderboard
 
 from app.utils.pagination import paginate
 
-leaderboard_bp = Blueprint("leaderboard", __name__, url_prefix="/leaderboard")
+leaderboard_bp = Blueprint("leaderboard", __name__, url_prefix="/api/leaderboard")
 
 
 @leaderboard_bp.get("/")

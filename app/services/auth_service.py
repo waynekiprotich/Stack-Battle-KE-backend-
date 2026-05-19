@@ -39,7 +39,7 @@ def register_user(data):
     clean_email = data["email"].lower().strip()
 
     # Stop duplicate accounts
-    if email_already_registered(clean_email):
+    if check_email_exists(clean_email):
         raise ValueError("An account with this email already exists.")
 
     # Create user object
@@ -59,7 +59,7 @@ def register_user(data):
     db.session.commit()
 
     # Automatically log user in after signup
-    access_token = create_access_token(identity=new_user.id)
+    access_token = create_access_token(identity=str(new_user.id))
 
     return {
         "token": access_token,
@@ -84,7 +84,7 @@ def login_user(data):
     if not user or not user.check_password(password):
         raise ValueError("Invalid email or password.")
 
-    access_token = create_access_token(identity=user.id)
+    access_token = create_access_token(identity=str(user.id))
 
     return {
         "token": access_token,

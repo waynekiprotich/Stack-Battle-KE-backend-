@@ -1,9 +1,9 @@
-#Fuctional use of schema
-#Convert database objects
-#Validate incoming user data (
-#Control what fields are exposed or hidden
+# Functional use of schema
+# Convert database objects
+# Validate incoming user data
+# Control what fields are exposed or hidden
 
-from marshmallow import fields, validate, validates, ValidationError
+from marshmallow import fields, validate, validates, ValidationError, EXCLUDE
 from app.extensions import ma
 from app.models.users import User, Institution
 from app.models.challenge import Challenge, TestCase, WeeklyChallenge
@@ -28,6 +28,10 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         model = User
         load_instance = True
         exclude = ("password_hash",)
+        
+        # Allows institution_id to pass through and ignores unknown fields
+        include_fk = True       
+        unknown = EXCLUDE       
 
     # Input validation
     email = fields.Email(required=True, error_messages={"required": "Email is required."})
@@ -44,7 +48,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     institution = ma.Nested(InstitutionSchema, only=("id", "name", "type"), dump_only=True)
 
 
-#Test Case 
+# Test Case 
 class TestCaseSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = TestCase
@@ -63,6 +67,8 @@ class ChallengeSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Challenge
         load_instance = True
+        unknown = EXCLUDE
+        include_fk = True
 
     difficulty = fields.Str(
         validate=validate.OneOf(
@@ -70,8 +76,53 @@ class ChallengeSchema(ma.SQLAlchemyAutoSchema):
             error="Difficulty must be Easy, Medium, or Hard.",
         )
     )
-    # Return visible test cases only 
-    test_cases = ma.Nested(TestCaseSchema, many=True, dump_only=True)
+    
+    # 1. Map backend columns to the exact keys the React frontend expects
+    desc = fields.String(attribute="description", dump_only=True)
+    points = fields.Integer(attribute="points_reward", dump_only=True)
+    time = fields.Method("format_time", dump_only=True)
+    
+    # 2. Combine the individual starter code columns into the nested object React wants
+    boilerplate = fields.Method("get_boilerplate", dump_only=True)
+    
+    # 3. Split the test cases into visible 'examples' and a 'hiddenTests' counter
+    examples = fields.Method("get_examples", dump_only=True)
+    hiddenTests = fields.Method("get_hidden_tests_count", dump_only=True)
+
+    def format_time(self, obj):
+        # React expects a string like "5000s" or "5000ms"
+        return f"{obj.time_limit}ms" if obj.time_limit else "5000ms"
+
+    def get_boilerplate(self, obj):
+        return {
+            "python": obj.starter_code_python or "# Write your solution here\npass",
+            "javascript": obj.starter_code_javascript or "// Write your solution here"
+        }
+
+    def get_examples(self, obj):
+            # FIX: Because the model uses lazy="dynamic", we MUST call .all() to get the list
+            cases = obj.test_cases.all() if hasattr(obj.test_cases, 'all') else obj.test_cases
+            
+            if not cases:
+                return []
+                
+            # Filter out hidden tests
+            visible_tests = [tc for tc in cases if not tc.is_hidden]
+            return [
+                {
+                    "input": tc.input_data or "",
+                    "output": tc.expected_output or "",
+                    "explanation": "" 
+                } for tc in visible_tests
+        ]
+
+    def get_hidden_tests_count(self, obj):
+        # FIX: Call .all() here as well
+        cases = obj.test_cases.all() if hasattr(obj.test_cases, 'all') else obj.test_cases
+        
+        if not cases:
+            return 0
+        return sum(1 for tc in cases if tc.is_hidden)
 
 
 # Weekly Challenge
@@ -103,7 +154,7 @@ class SubmissionSchema(ma.SQLAlchemyAutoSchema):
     challenge = ma.Nested(ChallengeSchema, only=("id", "title", "difficulty"), dump_only=True)
 
 
-#Group
+# Group
 class GroupMemberSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = GroupMember
@@ -116,6 +167,9 @@ class GroupSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Group
         load_instance = True
+        
+        # Add this line to prevent the 422 crash!
+        unknown = EXCLUDE 
 
     name = fields.Str(
         required=True,
@@ -125,7 +179,7 @@ class GroupSchema(ma.SQLAlchemyAutoSchema):
     admin = ma.Nested(UserSchema, only=("id", "name"), dump_only=True)
 
 
-#Friend Request
+# Friend Request
 class FriendRequestSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = FriendRequest
@@ -136,15 +190,14 @@ class FriendRequestSchema(ma.SQLAlchemyAutoSchema):
     status = fields.Str(validate=validate.OneOf(["Pending", "Accepted", "Rejected"]))
 
 
-#Notification  
+# Notification  
 class NotificationSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Notification
         load_instance = True
 
 
-#Single instances in routes
-
+# Single instances in routes
 institution_schema = InstitutionSchema()
 institutions_schema = InstitutionSchema(many=True)
 

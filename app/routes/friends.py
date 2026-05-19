@@ -7,7 +7,7 @@ from app.services.friend_service import (
     get_friends,
 )
 
-friends_bp = Blueprint("friends", __name__, url_prefix="/friends")
+friends_bp = Blueprint("friends", __name__, url_prefix="/api/friends")
 
 
 @friends_bp.post("/request")

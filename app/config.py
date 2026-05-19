@@ -6,9 +6,9 @@ load_dotenv()
 
 
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-in-prod")
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-in-prod-needs-to-be-long-too")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "jwt-secret-change-in-prod")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "super-secret-stack-battle-key-2026-xyz!")
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=7)
 
     @staticmethod
