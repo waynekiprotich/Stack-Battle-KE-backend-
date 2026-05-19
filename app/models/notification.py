@@ -1,7 +1,7 @@
 from datetime import datetime
 from app.extensions import db
 
-#Dealing  with notifation for users (for friend request for now and group invites)
+#Dealing  with notifation for users
 class Notification(db.Model):
     __tablename__ = "notifications"
 

@@ -42,7 +42,6 @@ class Challenge(db.Model):
         return f"<Challenge {self.slug}>"
 
 # For marking the cahllenges and test them if they are coorrect
-
 class TestCase(db.Model):
     __tablename__ = "test_cases"
 
