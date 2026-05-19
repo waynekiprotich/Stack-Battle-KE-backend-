@@ -3,7 +3,6 @@ from app.extensions import db
 
 #Tracks every attempt a user makes to solve a coding challenge and capturing the code they wrote
 #configuration
-
 SUBMISSION_STATUSES = [
     "Pending",
     "Running",

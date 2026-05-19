@@ -1,6 +1,5 @@
 from datetime import datetime
 from app.extensions import db
-# FIX: Use the shared helper to ensure uppercase codes match the join logic
 from app.utils.helpers import generate_invite_code 
 
 class Group(db.Model):
@@ -10,7 +9,7 @@ class Group(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     
-    # Auto-generates a unique code using the shared helper
+    # Auto-generates a unique code 
     invite_code = db.Column(
         db.String(12), 
         unique=True, 

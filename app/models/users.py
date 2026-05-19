@@ -2,7 +2,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db
 
-# This model represents the educational organizations that users be in.
+# This model represents the educational organizations that users be in
 class Institution(db.Model):
     __tablename__ = "institutions"
 

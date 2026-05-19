@@ -8,8 +8,6 @@ from app.config import get_config
 
 def create_app(env="development"):
     app = Flask(__name__)
-
-    # To avoid strict slash redirect issues (308 errors)
     app.url_map.strict_slashes = False
     app.config.from_object(get_config(env))
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
