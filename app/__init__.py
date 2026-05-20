@@ -11,6 +11,7 @@ def create_app(env="development"):
 
     app.url_map.strict_slashes = False
     app.config.from_object(get_config(env))
+
     frontend_url = os.getenv(
         "FRONTEND_URL",
         "https://op-woking-bske.vercel.app"
@@ -27,25 +28,24 @@ def create_app(env="development"):
         methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
     )
 
-    # EXTENSIONS
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
     ma.init_app(app)
 
-    # MODELS
     with app.app_context():
-        from app.models import *
+        from app.models import (
+            User, Institution, Challenge, TestCase,
+            WeeklyChallenge, Submission, Group,
+            GroupMember, FriendRequest, Notification,
+        )
 
-    # BLUEPRINTS
     from app.routes import register_blueprints
     register_blueprints(app)
 
-    # ERROR HANDLERS
     from app.errors.handlers import register_error_handlers
     register_error_handlers(app)
 
-    # MIDDLEWARE
     from app.middleware import register_middleware
     register_middleware(app)
 
