@@ -10,10 +10,11 @@ from app.routes.notifications import notifications_bp
 
 
 def register_blueprints(app):
-
+    print("REGISTERING BLUEPRINTS STARTED")
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(users_bp, url_prefix="/api/users")
     app.register_blueprint(institutions_bp, url_prefix="/api/institutions")
+    print("REGISTERING CHALLENGES BP")
     app.register_blueprint(challenges_bp, url_prefix="/api/challenges")
     app.register_blueprint(submissions_bp, url_prefix="/api/submissions")
     app.register_blueprint(groups_bp, url_prefix="/api/groups")
