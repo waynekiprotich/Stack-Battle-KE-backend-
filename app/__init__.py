@@ -1,8 +1,10 @@
 import os
 from flask import Flask
 from flask_cors import CORS
+
 from app.extensions import db, migrate, jwt, ma
 from app.config import get_config
+
 
 def create_app(env="development"):
     app = Flask(__name__)
