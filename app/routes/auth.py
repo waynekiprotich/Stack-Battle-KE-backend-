@@ -5,7 +5,7 @@ from app.services.auth_service import check_email_exists, register_user, login_u
 from app.models.users import User
 from app.schemas import user_schema
 
-auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.post("/check-email")
 def check_email():
