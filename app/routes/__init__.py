@@ -10,6 +10,7 @@ from app.routes.notifications import notifications_bp
 
 
 def register_blueprints(app):
+
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(users_bp, url_prefix="/api/users")
     app.register_blueprint(institutions_bp, url_prefix="/api/institutions")
