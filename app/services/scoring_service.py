@@ -1,5 +1,21 @@
+import re
 from app.services.piston_service import run_code
 from app.extensions import db
+
+def normalize_output(text: str) -> str:
+    """
+    Normalizes code output string formatting to ensure reliable comparison.
+    Strips brackets, commas, quotes, and compresses multi-spaces into single spaces.
+    """
+    if not text:
+        return ""
+    # Convert to lowercase and strip outer whitespaces
+    cleaned = text.lower().strip()
+    # Remove array brackets, punctuation commas, and quotes
+    cleaned = re.sub(re.compile(r'[\[\]\,\"\']'), ' ', cleaned)
+    # Compress any multi-space segments down to a single space
+    cleaned = re.sub(re.compile(r'\s+'), ' ', cleaned)
+    return cleaned.strip()
 
 def evaluate_submission(submission, challenge, test_cases):
     """
@@ -23,8 +39,8 @@ def evaluate_submission(submission, challenge, test_cases):
         )
 
         # Clean up the output to compare it easily
-        actual = output["stdout"].strip()
-        expected = tc.expected_output.strip()
+        actual_raw = output["stdout"]
+        expected_raw = tc.expected_output
         
         # Keep track of the latest output and time
         last_stdout = output["stdout"]
@@ -35,7 +51,7 @@ def evaluate_submission(submission, challenge, test_cases):
         # Check what the result of this specific test was
         if output["stderr"]:
             tc_status = "Runtime Error"
-        elif actual == expected:
+        elif normalize_output(actual_raw) == normalize_output(expected_raw):
             tc_status = "Accepted"
             passed += 1
         else:
@@ -48,8 +64,8 @@ def evaluate_submission(submission, challenge, test_cases):
             "status": tc_status,
             "is_hidden": tc.is_hidden,
             # If the test is hidden, we don't show the expected/actual output
-            "expected": expected if not tc.is_hidden else None,
-            "actual": actual if not tc.is_hidden else None,
+            "expected": expected_raw.strip() if not tc.is_hidden else None,
+            "actual": actual_raw.strip() if not tc.is_hidden else None,
         })
 
     # Step 1: Calculate the base score 
