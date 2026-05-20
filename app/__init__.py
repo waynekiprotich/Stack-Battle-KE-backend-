@@ -15,6 +15,7 @@ def create_app(env="development"):
         "FRONTEND_URL",
         "https://op-woking-bske.vercel.app"
     )
+
     CORS(
         app,
         origins=[
@@ -26,21 +27,17 @@ def create_app(env="development"):
         methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
     )
 
-    # EXTENSIONS INIT
+    # EXTENSIONS
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
     ma.init_app(app)
 
-    # LOAD MODELS
+    # MODELS
     with app.app_context():
-        from app.models import (
-            User, Institution, Challenge, TestCase,
-            WeeklyChallenge, Submission, Group,
-            GroupMember, FriendRequest, Notification,
-        )
+        from app.models import *
 
-    # REGISTER BLUEPRINTS
+    # BLUEPRINTS
     from app.routes import register_blueprints
     register_blueprints(app)
 
