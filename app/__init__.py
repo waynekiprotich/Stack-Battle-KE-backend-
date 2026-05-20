@@ -25,11 +25,13 @@ def create_app(env="development"):
         methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
     )
 
+    # init extensions
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
     ma.init_app(app)
 
+    # IMPORTANT: load models
     with app.app_context():
         from app.models import (
             User, Institution, Challenge, TestCase,
@@ -37,6 +39,7 @@ def create_app(env="development"):
             GroupMember, FriendRequest, Notification,
         )
 
+    # register routes
     from app.routes import register_blueprints
     register_blueprints(app)
 
