@@ -1,10 +1,8 @@
 import os
 from flask import Flask
 from flask_cors import CORS
-
 from app.extensions import db, migrate, jwt, ma
 from app.config import get_config
-
 
 def create_app(env="development"):
     app = Flask(__name__)
@@ -19,10 +17,7 @@ def create_app(env="development"):
 
     CORS(
         app,
-        origins=[
-            frontend_url,
-            "http://localhost:5173"
-        ],
+        resources={r"/*": {"origins": [frontend_url, "http://localhost:5173"]}},
         supports_credentials=True,
         allow_headers=["Content-Type", "Authorization"],
         methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
@@ -42,11 +37,5 @@ def create_app(env="development"):
 
     from app.routes import register_blueprints
     register_blueprints(app)
-
-    from app.errors.handlers import register_error_handlers
-    register_error_handlers(app)
-
-    from app.middleware import register_middleware
-    register_middleware(app)
 
     return app
