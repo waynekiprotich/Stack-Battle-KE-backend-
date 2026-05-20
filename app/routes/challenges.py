@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.models.challenge import Challenge, WeeklyChallenge
+from app.schemas import challenge_schema, challenges_schema  
 
 challenges_bp = Blueprint("challenges", __name__)
 
@@ -17,20 +18,11 @@ def get_challenges():
 
         challenges = query.order_by(Challenge.created_at.desc()).all()
 
+        # Let the schema handle the formatting!
         return jsonify({
             "success": True,
             "count": len(challenges),
-            "data": [
-                {
-                    "id": c.id,
-                    "title": c.title,
-                    "slug": c.slug,
-                    "description": c.description,
-                    "difficulty": c.difficulty,
-                    "points_reward": c.points_reward
-                }
-                for c in challenges
-            ]
+            "data": challenges_schema.dump(challenges) 
         }), 200
 
     except Exception as e:
@@ -42,19 +34,11 @@ def get_practice():
     try:
         challenges = Challenge.query.filter_by(is_practice=True).all()
 
+        # Let the schema handle the formatting!
         return jsonify({
             "success": True,
             "count": len(challenges),
-            "data": [
-                {
-                    "id": c.id,
-                    "title": c.title,
-                    "slug": c.slug,
-                    "difficulty": c.difficulty,
-                    "points_reward": c.points_reward
-                }
-                for c in challenges
-            ]
+            "data": challenges_schema.dump(challenges)
         }), 200
 
     except Exception as e:
@@ -80,14 +64,7 @@ def get_weekly():
                 "week_number": weekly.week_number,
                 "start_date": str(weekly.start_date),
                 "end_date": str(weekly.end_date),
-                "challenge": {
-                    "id": challenge.id,
-                    "title": challenge.title,
-                    "slug": challenge.slug,
-                    "description": challenge.description,
-                    "difficulty": challenge.difficulty,
-                    "points_reward": challenge.points_reward
-                }
+                "challenge": challenge_schema.dump(challenge)
             }
         }), 200
 
@@ -106,18 +83,11 @@ def get_challenge(challenge_id):
                 "error": "Challenge not found"
             }), 404
 
+        # Use the schema dump so it automatically computes boilerplate,
+        # visible examples, and hidden test case counts for the frontend!
         return jsonify({
             "success": True,
-            "data": {
-                "id": challenge.id,
-                "title": challenge.title,
-                "slug": challenge.slug,
-                "description": challenge.description,
-                "difficulty": challenge.difficulty,
-                "starter_code_python": challenge.starter_code_python,
-                "starter_code_javascript": challenge.starter_code_javascript,
-                "points_reward": challenge.points_reward
-            }
+            "data": challenge_schema.dump(challenge) 
         }), 200
 
     except Exception as e:
